@@ -69,9 +69,12 @@ fun_econ_taxa <- function(
       , ncomp =
         unique(competing_set) %>%
         length()
-    ) -> df_econ
+    ) %>%
+    ungroup() ->
+    df_econ
 
   rm(df_hireability)
+
   rm(df_taxa)
 
   # data frame subclass
