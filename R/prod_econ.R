@@ -2,7 +2,7 @@
 # - fun_econ_taxa ---------------------------------------------------------
 fun_econ_taxa <- function(
     mtx_hireability,
-    df_taxonomy
+    df_taxa
 ){
 
   # arguments validation
@@ -47,7 +47,7 @@ fun_econ_taxa <- function(
     ) -> df_hireability
 
   # taxo-economic competition data frame
-  df_taxonomy %>%
+  df_taxa %>%
     unnest(set) %>%
     rename(
       comparison_set = set
@@ -58,7 +58,7 @@ fun_econ_taxa <- function(
       , relationship = 'many-to-many'
     ) %>%
     relocate(any_of(
-      names(df_taxonomy)
+      names(df_taxa)
     )) %>%
     group_by(
       taxon,
@@ -72,7 +72,7 @@ fun_econ_taxa <- function(
     ) -> df_econ
 
   rm(df_hireability)
-  rm(df_taxonomy)
+  rm(df_taxa)
 
   # data frame subclass
   new_data_frame(
