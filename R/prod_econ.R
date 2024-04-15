@@ -26,13 +26,13 @@ fun_econ_taxa <- function(
   )
 
   # data wrangling
-  mtx_similarity %>%
+  mtx_hireability %>%
     as_tibble(
       rownames =
         'comparison_set'
     ) -> df_hireability
 
-  rm(mtx_similarity)
+  rm(mtx_hireability)
 
   # hireability data frame
   # filter by hireability to reduce join
