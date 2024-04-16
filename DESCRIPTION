@@ -1,7 +1,7 @@
 Package: atlas.econ
 Type: Package
 Title: Labor Market Analyses
-Version: 1.0.3
+Version: 1.1.0
 Author: Cao Bittencourt
 Maintainer: Cao Bittencourt <caobittencourt@gmail.com>
 Description: This package provides tools for labor market analyses based on SOC occupational taxonomies and similarity or interchangeability matrices (see atlas.taxa, atlas.match, atlas.intc).

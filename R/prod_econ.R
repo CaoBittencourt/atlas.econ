@@ -1,8 +1,10 @@
 # [FUNCTIONS] --------------------------------------------------------------
 # - fun_econ_taxa ---------------------------------------------------------
 fun_econ_taxa <- function(
-    mtx_hireability,
-    df_taxa
+    mtx_hireability
+    , df_taxa
+    , dbl_employment = NULL
+    , dbl_wages = NULL
 ){
 
   # arguments validation
@@ -25,6 +27,30 @@ fun_econ_taxa <- function(
       )
   )
 
+  stopifnot(
+    "'dbl_employment' must be either NULL or a numeric vector the same length as the number of rows in 'mtx_hireability'." =
+      any(
+        is.null(dbl_employment)
+        , all(
+          is.numeric(dbl_employment)
+          , length(dbl_employment) ==
+            nrow(mtx_hireability)
+        )
+      )
+  )
+
+  stopifnot(
+    "'dbl_wages' must be either NULL or a numeric vector the same length as the number of rows in 'mtx_hireability'." =
+      any(
+        is.null(dbl_wages)
+        , all(
+          is.numeric(dbl_wages)
+          , length(dbl_wages) ==
+            nrow(mtx_hireability)
+        )
+      )
+  )
+
   # data wrangling
   mtx_hireability %>%
     as_tibble(
@@ -34,11 +60,36 @@ fun_econ_taxa <- function(
 
   rm(mtx_hireability)
 
+  if(is.null(dbl_employment)){
+
+    dbl_employment <- 1
+
+  }
+
+  if(is.null(dbl_wages)){
+
+    dbl_wages <- 0
+
+  }
+
+  # add weights and wages
+  dbl_employment ->
+    df_hireability$
+    employment
+
+  dbl_wages ->
+    df_hireability$
+    wage
+
   # hireability data frame
   # filter by hireability to reduce join
   df_hireability %>%
     pivot_longer(
-      cols = -1
+      cols = -c(
+        'comparison_set',
+        'employment',
+        'wage'
+      )
       , names_to = 'competing_set'
       , values_to = 'hireability'
     ) %>%
@@ -74,7 +125,6 @@ fun_econ_taxa <- function(
     df_econ
 
   rm(df_hireability)
-
   rm(df_taxa)
 
   # data frame subclass
