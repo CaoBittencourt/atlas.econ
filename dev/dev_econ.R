@@ -256,7 +256,7 @@ fun_econ_taxa <- function(
 
 }
 
-# - fun_econ_employability ------------------------------------------------
+# - [dev] fun_econ_employability ------------------------------------------------
 fun_econ_employability <- function(df_econ, lgc_taxon = F){
 
   # arguments validation
@@ -298,31 +298,12 @@ fun_econ_employability <- function(df_econ, lgc_taxon = F){
         employment
     ) -> df_employability
 
+  rm(df_econ)
+
   # for each taxon
   if(lgc_taxon){
 
     df_employability %>%
-      right_join(
-        df_employability %>%
-          filter(
-            set ==
-              competing_set
-          ) %>%
-          select(
-            competing_set
-            , employment
-          ) %>%
-          rename(
-            competing_employment =
-              employment
-          )
-        , multiple = 'all'
-        , relationship = 'many-to-many'
-      ) %>%
-      group_by(
-        taxon,
-        taxon_id
-      ) %>%
       reframe(
         employability =
           weighted.mean(
@@ -333,21 +314,27 @@ fun_econ_employability <- function(df_econ, lgc_taxon = F){
 
   }
 
-  # reframe(
-  #   employment_potential = sum(
-  #     hireability *
-  #       employment
-  #   )
-  #   , employment =
-  #     first(employment)
-  #   , employability =
-  #     weighted.mean(
-  #       hireability
-  #       , employment
-  #     )
-  # ) -> df_employability
+  # continue calculation
+  # for each occupation
+  if(!lgc_taxon){
 
-  rm(df_econ)
+    df_employability %>%
+      group_by(
+        taxon,
+        taxon_id,
+        competing_set
+      ) %>%
+      reframe(
+        employment =
+          first(employment)
+        , employability =
+          first(employability)
+        , employment_potential = sum(
+          employment_potential
+        )
+      ) -> df_employability
+
+  }
 
   # output
   return(df_employability)
