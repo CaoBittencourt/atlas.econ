@@ -55,7 +55,7 @@ fun_econ_taxa <- function(
   mtx_hireability %>%
     as_tibble(
       rownames =
-        'comparison_set'
+        'set'
     ) -> df_hireability
 
   rm(mtx_hireability)
@@ -86,7 +86,7 @@ fun_econ_taxa <- function(
   df_hireability %>%
     pivot_longer(
       cols = -c(
-        'comparison_set',
+        'set',
         'employment',
         'wage'
       )
@@ -101,15 +101,39 @@ fun_econ_taxa <- function(
   df_taxa %>%
     unnest(set) %>%
     rename(
-      comparison_set = set
+      set = set
     ) %>%
     left_join(
       df_hireability
       , multiple = 'all'
       , relationship = 'many-to-many'
+    ) -> df_hireability
+
+  rm(df_taxa)
+
+  df_hireability %>%
+    filter(
+      set ==
+        competing_set
+    ) %>%
+    select(
+      competing_set
+      , employment
+      , wage
+    ) %>%
+    rename(
+      competing_employment =
+        employment
+      , competing_wage =
+        wage
+    ) %>%
+    right_join(
+      df_hireability
+      , multiple = 'all'
+      , relationship = 'many-to-many'
     ) %>%
     relocate(any_of(
-      names(df_taxa)
+      names(df_hireability)
     )) %>%
     group_by(
       taxon,
@@ -125,7 +149,6 @@ fun_econ_taxa <- function(
     df_econ
 
   rm(df_hireability)
-  rm(df_taxa)
 
   # data frame subclass
   new_data_frame(

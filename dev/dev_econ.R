@@ -29,7 +29,7 @@
 #   mtx_hireability %>%
 #     as_tibble(
 #       rownames =
-#         'comparison_set'
+#         'set'
 #     ) -> df_hireability
 #
 #   rm(mtx_hireability)
@@ -50,7 +50,7 @@
 #   df_taxa %>%
 #     unnest(set) %>%
 #     rename(
-#       comparison_set = set
+#       set = set
 #     ) %>%
 #     left_join(
 #       df_hireability
@@ -147,7 +147,7 @@ fun_econ_taxa <- function(
   mtx_hireability %>%
     as_tibble(
       rownames =
-        'comparison_set'
+        'set'
     ) -> df_hireability
 
   rm(mtx_hireability)
@@ -178,7 +178,7 @@ fun_econ_taxa <- function(
   df_hireability %>%
     pivot_longer(
       cols = -c(
-        'comparison_set',
+        'set',
         'employment',
         'wage'
       )
@@ -193,15 +193,39 @@ fun_econ_taxa <- function(
   df_taxa %>%
     unnest(set) %>%
     rename(
-      comparison_set = set
+      set = set
     ) %>%
     left_join(
       df_hireability
       , multiple = 'all'
       , relationship = 'many-to-many'
+    ) -> df_hireability
+
+  rm(df_taxa)
+
+  df_hireability %>%
+    filter(
+      set ==
+        competing_set
+    ) %>%
+    select(
+      competing_set
+      , employment
+      , wage
+    ) %>%
+    rename(
+      competing_employment =
+        employment
+      , competing_wage =
+        wage
+    ) %>%
+    right_join(
+      df_hireability
+      , multiple = 'all'
+      , relationship = 'many-to-many'
     ) %>%
     relocate(any_of(
-      names(df_taxa)
+      names(df_hireability)
     )) %>%
     group_by(
       taxon,
@@ -217,7 +241,6 @@ fun_econ_taxa <- function(
     df_econ
 
   rm(df_hireability)
-  rm(df_taxa)
 
   # data frame subclass
   new_data_frame(
@@ -254,38 +277,75 @@ fun_econ_employability <- function(df_econ, lgc_taxon = F){
   )
 
   # calculate employability
-  if(!lgc_taxon){
-    # for each occupation
-    df_econ %>%
-      group_by(
-        taxon,
-        taxon_id,
-        competing_set
-      ) %>%
-      reframe(
-        hireability =
-          weighted.mean(
-            hireability
-            , dbl_employment
-          )
-      ) -> df_employability
+  # for each occupation
+  df_econ %>%
+    group_by(
+      taxon,
+      taxon_id,
+      competing_set
+    ) %>%
+    mutate(
+      employability =
+        weighted.mean(
+          hireability
+          , employment
+        )
+    ) %>%
+    ungroup() %>%
+    mutate(
+      employment_potential =
+        hireability *
+        employment
+    ) -> df_employability
 
-  } else {
-    # for each taxon
-    df_econ %>%
+  # for each taxon
+  if(lgc_taxon){
+
+    df_employability %>%
+      right_join(
+        df_employability %>%
+          filter(
+            set ==
+              competing_set
+          ) %>%
+          select(
+            competing_set
+            , employment
+          ) %>%
+          rename(
+            competing_employment =
+              employment
+          )
+        , multiple = 'all'
+        , relationship = 'many-to-many'
+      ) %>%
       group_by(
         taxon,
-        competing_set
+        taxon_id
       ) %>%
       reframe(
-        hireability =
+        employability =
           weighted.mean(
-            hireability
-            , dbl_employment
+            employability
+            , competing_employment
           )
       ) -> df_employability
 
   }
+
+  # reframe(
+  #   employment_potential = sum(
+  #     hireability *
+  #       employment
+  #   )
+  #   , employment =
+  #     first(employment)
+  #   , employability =
+  #     weighted.mean(
+  #       hireability
+  #       , employment
+  #     )
+  # ) -> df_employability
 
   rm(df_econ)
 
@@ -294,7 +354,7 @@ fun_econ_employability <- function(df_econ, lgc_taxon = F){
 
 }
 
-# - fun_econ_competitiveness ----------------------------------------------
+# - fun_econ_versus ----------------------------------------------
 
 
 
